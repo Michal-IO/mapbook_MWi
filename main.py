@@ -1,10 +1,11 @@
-zmienna_1:str= 'Michał'
-zmienna_2:str= 'Kasia'
-zmienna_3:str= 'Albert'
-zmienna_4:str= 'Julia'
+#Przygotuj liste słowników które będą przechowywały informacje o użytkownikach na teamt: imie(name)
+# miejscowosc(location), liczba postow(posts),
 
+users:list=[
+    {'name':'Kasia','location':'Warszawa','posts': 3},
+    {'name':'Asia','location':'Kraków','posts': 5},
+    {'name':'Bsia','location':'Wrocław','posts': 7},
+]
 
-uzytkownicy:list=[zmienna_1, zmienna_2, zmienna_3, zmienna_4]
-
-for uzytkownik in uzytkownicy:
-    print(f'Hello {uzytkownik}')
+for user in users:
+    print(f'Twój znajomy {user["name"]} z miejscowości {user['location']} opublikował {user["posts"]} posty')
