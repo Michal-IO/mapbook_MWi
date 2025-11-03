@@ -1,39 +1,87 @@
 # Przygotuj liste słowników które będą przechowywały informacje o użytkownikach na teamt: imie(name)
 # miejscowosc(location), liczba postow(posts),
 
+import requests
+from bs4 import BeautifulSoup
+
 users: list = [
-    {'name': 'Kasia', 'location': 'Warszawa', 'posts': 3},
-    {'name': 'Asia', 'location': 'Kraków', 'posts': 5},
-    {'name': 'Bsia', 'location': 'Wrocław', 'posts': 7},
+    {'name': 'Kasia', 'location': 'Warszawa', 'posts': 3, 'coord': [52.23, 21.0], 'img_url':""},
+    {'name': 'Asia', 'location': 'Kraków', 'posts': 5, 'coord': [50.0, 19.9], 'img_url':""},
+    {'name': 'Bsia', 'location': 'Wrocław', 'posts': 7, 'coord': [51.0, 17.0], 'img_url':""},
 ]
 
 
-def user_info(users_data:list) -> None:
+def user_info(users_data: list) -> None:
     for user in users_data:
         print(f'Twój znajomy {user["name"]} z miejscowości {user['location']} opublikował {user["posts"]} posty')
 
 
-def add_user(users_data:list) -> None:
+def add_user(users_data: list) -> None:
     name: str = input('Podaj imie nowego znajomego: ')
     location: str = input('Podaj nazwe miejscowosci: ')
     posts: int = int(input('Podaj liczbe postow: '))
-    users_data.append({'name': name, 'location': location, 'posts': posts})
+    img_url = input('Wprowadź adres url zdjęcia: ')
+    users_data.append({'name': name, 'location': location, 'posts': posts, 'img_url': img_url })
 
-def remove_user(users_data:list)->None:
-    tmp_name:str=input('Podaj imie uzytkownika do usuniecia ze znajomych: ')
+
+def remove_user(users_data: list) -> None:
+    tmp_name: str = input('Podaj imie uzytkownika do usuniecia ze znajomych: ')
     for user in users_data:
         if user['name'] == tmp_name:
             users.remove(user)
 
-def update_user(users_data:list)->None:
-     tmp_name:str=input('Podaj imie uzytkownika do aktualizacji: ')
-     for user in users_data:
-         if user['name']==tmp_name:
-             user['name']=input('Podaj nowe imie uzytkownika: ')
-             user['location']=input('Podaj nowa nazwe miejscowosci: ')
-             user['posts']=input('Podaj nowa liczbe postow: ')
+
+def update_user(users_data: list) -> None:
+    tmp_name: str = input('Podaj imie uzytkownika do aktualizacji: ')
+    for user in users_data:
+        if user['name'] == tmp_name:
+            user['name'] = input('Podaj nowe imie uzytkownika: ')
+            user['location'] = input('Podaj nowa nazwe miejscowosci: ')
+            user['posts'] = input('Podaj nowa liczbe postow: ')
+
+
+def get_coordinates(city_name: str) -> list:
+    url: str = f'https://pl.wikipedia.org/wiki/{city_name}'
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/123.0.0.0 Safari/537.36"
+    }
+    response = requests.get(url, headers=headers)
+    # print(response.text)
+    response_html = BeautifulSoup(response.text, "html.parser")
+    # print(response_html.prettify())
+    latitude = float(response_html.select('.latitude')[1].text.replace(',', '.'))
+    # print(latitude)
+    longitude = float(response_html.select('.longitude')[1].text.replace(',', '.'))
+    # print(longitude)
+    return [latitude, longitude]
+
+
+def get_map(users_data: list) -> None:
+    import folium
+    m = folium.Map(location=[52.23, 21.0], zoom_start=6)
+
+    for user in users_data:
+        folium.Marker(
+            location=get_coordinates(user['location']),
+            tooltip="Click me!",
+            popup=f"<h4>user: {user['name']}</h4> {user['location']} {user['posts']}, <img src={user['img_url']} alt='1'/>",
+            icon=folium.Icon(icon="cloud"),
+        ).add_to(m)
+
+    m.save('notatnik.html')
+
 
 while True:
+    print('===========================MENU==============================')
+    print('0. Wyjście z programu')
+    print('1. Wyświetlanie znajomego')
+    print('2. Dodaj znajomego')
+    print('3. Usuń znajomego')
+    print('4. Aktualizuj znajomego')
+    print('5. Generuj mapę')
+    print('=============================================================')
     tmp_choice: int = int(input('wybierz opjce menu:'))
     if tmp_choice == 0:
         break
@@ -44,8 +92,11 @@ while True:
         print('wybrano funkcje dodawania znajomego')
         add_user(users)
     if tmp_choice == 3:
-        print('wybrano opcje usuwania znajomego')
+        print('wybrano funkcje usuwania znajomego')
         remove_user(users)
     if tmp_choice == 4:
         print('wybrano funkcje aktualizowania znajomego')
         update_user(users)
+    if tmp_choice == 5:
+        print('wybrano funkcje wyświetlania mapy')
+        get_map(users)
